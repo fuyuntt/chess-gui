@@ -77,8 +77,8 @@ export default {
       let srcY = 9 - (move.charCodeAt(1) - code0)
       let dstX = move.charCodeAt(2) - codeA
       let dstY = 9 - (move.charCodeAt(3) - code0)
-      this.pcSquares[dstY][dstX] = this.pcSquares[srcY][srcX]
-      this.pcSquares[srcY][srcX] = ' '
+      this.$set(this.pcSquares[dstY], dstX, this.pcSquares[srcY][srcX])
+      this.$set(this.pcSquares[srcY], srcX, ' ')
       this.select(dstX, dstY)
       if (this.position === initPosition) {
         this.position += ' moves'
