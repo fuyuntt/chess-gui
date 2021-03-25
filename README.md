@@ -1,6 +1,6 @@
 # chess-gui
 
-> A Vue.js project
+> 中国象棋简单ui
 
 ## Build Setup
 
