@@ -1,21 +1,27 @@
 <template>
-<div class="board">
-  <table>
-    <tr class="sqRow" v-for="(row, idxY) in pcSquares" :key="idxY">
-      <td class="square" v-for="(pc, idxX) in row" :key="idxX" @click="clickSq(idxX, idxY)">
-        <img class="sqPc" v-show="selectSq.x===idxX && selectSq.y===idxY" src="../assets/selected.png" alt=""/>
-        <img class="sqPc" :src="require('../assets/'+resMap[pc])" alt=""/>
-      </td>
-    </tr>
-  </table>
-  <div>
-    <button @click="reset">重置</button>
-  </div>
+<div>
+  <el-container style="border: 1px">
+    <el-main>
+      <table class="board">
+        <tr class="sqRow" v-for="(row, idxY) in pcSquares" :key="idxY">
+          <td class="square" v-for="(pc, idxX) in row" :key="idxX" @click="clickSq(idxX, idxY)">
+            <img class="sqPc" v-show="selectSq.x===idxX && selectSq.y===idxY" src="../assets/selected.png" alt=""/>
+            <img class="sqPc" :src="require('../assets/'+resMap[pc])" alt=""/>
+          </td>
+        </tr>
+      </table>
+    </el-main>
+    <el-footer>
+      <el-button type="primary" @click="reset">重置</el-button>
+      <el-button type="primary" @click="back">悔棋</el-button>
+    </el-footer>
+  </el-container>
 </div>
 </template>
 
 <script>
 import server from '../server'
+
 const initPcSquares = [
   ['r', 'n', 'b', 'a', 'k', 'a', 'b', 'n', 'r'],
   [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
@@ -62,7 +68,8 @@ export default {
       pcSquares: JSON.parse(JSON.stringify(initPcSquares)),
       resMap: resMap,
       playerRed: true,
-      position: initPosition
+      position: initPosition,
+      moveStack: []
     }
   },
   methods: {
@@ -77,14 +84,35 @@ export default {
       let srcY = 9 - (move.charCodeAt(1) - code0)
       let dstX = move.charCodeAt(2) - codeA
       let dstY = 9 - (move.charCodeAt(3) - code0)
+      let captured = this.pcSquares[dstY][dstX]
       this.$set(this.pcSquares[dstY], dstX, this.pcSquares[srcY][srcX])
       this.$set(this.pcSquares[srcY], srcX, ' ')
-      this.select(dstX, dstY)
       if (this.position === initPosition) {
         this.position += ' moves'
       }
       this.position = this.position + ' ' + move
       this.playerRed = !this.playerRed
+      this.moveStack.push({mv: move, captured: captured, selectSq: {x: this.selectSq.x, y: this.selectSq.y}})
+      this.select(dstX, dstY)
+    },
+    undoMakeMove () {
+      let frame = this.moveStack.pop()
+      if (frame === undefined) {
+        return
+      }
+      let move = frame.mv
+      let srcX = move.charCodeAt(0) - codeA
+      let srcY = 9 - (move.charCodeAt(1) - code0)
+      let dstX = move.charCodeAt(2) - codeA
+      let dstY = 9 - (move.charCodeAt(3) - code0)
+      this.$set(this.pcSquares[srcY], srcX, this.pcSquares[dstY][dstX])
+      this.$set(this.pcSquares[dstY], dstX, frame.captured)
+      this.position = this.position.substr(0, this.position.length - 5)
+      if (this.position.endsWith('moves')) {
+        this.position = initPosition
+      }
+      this.playerRed = !this.playerRed
+      this.select(frame.selectSq.x, frame.selectSq.y)
     },
     async clickSq (x, y) {
       if (!this.playerRed) {
@@ -110,6 +138,10 @@ export default {
       this.pcSquares = JSON.parse(JSON.stringify(initPcSquares))
       this.playerRed = true
       this.position = initPosition
+    },
+    back () {
+      this.undoMakeMove()
+      this.undoMakeMove()
     }
   }
 }
