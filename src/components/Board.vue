@@ -12,6 +12,10 @@
       </table>
     </el-main>
     <el-footer>
+      <span style="float: left">
+        <img src="../assets/rk.png" alt="" v-show="playerRed">
+        <img src="../assets/bk.png" alt="" v-show="!playerRed">
+      </span>
       <el-button type="primary" @click="reset">重置</el-button>
       <el-button type="primary" @click="back">悔棋</el-button>
     </el-footer>
@@ -127,19 +131,30 @@ export default {
       if (isLegal) {
         this.makeMove(move)
         let serverMove = await server.think(this.position)
-        this.makeMove(serverMove)
+        console.log(`score: ${serverMove.score}, moves ${serverMove.moves}`)
+        if (serverMove.moves && serverMove.moves.length > 0) {
+          this.makeMove(serverMove.moves[0])
+        }
+        if (serverMove.score >= 9999) {
+          await this.$confirm('电脑胜利', '提示')
+        } else if (serverMove.score <= -9999) {
+          await this.$confirm('玩家胜利', '提示')
+        } else if (serverMove.moves.length === 0) {
+          await this.$confirm('和棋', '提示')
+        }
       } else if (this.pcSquares[y][x] !== ' ') {
         this.select(x, y)
       }
     },
-    reset () {
+    async reset () {
+      await this.$confirm('确定重置局面？', '提示', {type: 'warning'})
       this.selectSq.x = -1
       this.selectSq.y = -1
       this.pcSquares = JSON.parse(JSON.stringify(initPcSquares))
       this.playerRed = true
       this.position = initPosition
     },
-    back () {
+    async back () {
       this.undoMakeMove()
       this.undoMakeMove()
     }
