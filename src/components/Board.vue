@@ -1,6 +1,6 @@
 <template>
 <div>
-  <el-container style="border: 1px">
+  <el-container class="board-container">
     <el-main>
       <table class="board">
         <tr class="sqRow" v-for="(row, idxY) in pcSquares" :key="idxY">
@@ -16,8 +16,10 @@
         <img src="../assets/rk.png" alt="" v-show="playerRed">
         <img src="../assets/bk.png" alt="" v-show="!playerRed">
       </span>
-      <el-button type="primary" @click="reset">重置</el-button>
-      <el-button type="primary" @click="back">悔棋</el-button>
+      <span style="float: right">
+        <el-button type="primary" @click="reset">重置</el-button>
+        <el-button type="primary" @click="back">悔棋</el-button>
+      </span>
     </el-footer>
   </el-container>
 </div>
@@ -163,6 +165,10 @@ export default {
 </script>
 
 <style scoped>
+  .board-container{
+    width: 540px;
+    border: 1px;
+  }
   .board{
     background-image: url(../assets/board.png);
     width: 520px;
