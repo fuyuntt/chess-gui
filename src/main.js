@@ -3,6 +3,7 @@
 import Vue from 'vue'
 import App from './App'
 import {Avatar, Button, Card, Container, Dialog, Divider, Footer, Main, MessageBox} from 'element-ui'
+import 'flex.css'
 
 Vue.use(Button)
 Vue.use(Dialog)

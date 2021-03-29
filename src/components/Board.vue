@@ -1,28 +1,26 @@
 <template>
-<div>
-  <el-container class="board-container">
-    <el-main>
-      <table class="board">
-        <tr class="sqRow" v-for="(row, idxY) in pcSquares" :key="idxY">
-          <td class="square" v-for="(pc, idxX) in row" :key="idxX" @click="clickSq(idxX, idxY)">
-            <img class="sqPc" v-show="selectSq.x===idxX && selectSq.y===idxY" src="../assets/selected.png" alt=""/>
-            <img class="sqPc" :src="require('../assets/'+resMap[pc])" alt=""/>
-          </td>
-        </tr>
-      </table>
-    </el-main>
-    <el-footer>
-      <span style="float: left">
-        <img src="../assets/rk.png" alt="" v-show="playerRed">
-        <img src="../assets/bk.png" alt="" v-show="!playerRed">
-      </span>
-      <span style="float: right">
-        <el-button type="primary" @click="reset">重置</el-button>
-        <el-button type="primary" @click="back">悔棋</el-button>
-      </span>
-    </el-footer>
-  </el-container>
-</div>
+<el-container class="board-container">
+  <el-main class="board-content">
+    <table class="board">
+      <tr class="sqRow" v-for="(row, idxY) in pcSquares" :key="idxY">
+        <td class="square" v-for="(pc, idxX) in row" :key="idxX" @click="clickSq(idxX, idxY)">
+          <img class="sqPc" v-show="selectSq.x===idxX && selectSq.y===idxY" src="../assets/selected.png" alt=""/>
+          <img class="sqPc" :src="require('../assets/'+resMap[pc])" alt=""/>
+        </td>
+      </tr>
+    </table>
+  </el-main>
+  <el-footer flex="main:justify">
+    <div>
+      <img src="../assets/rk.png" alt="" v-show="playerRed">
+      <img src="../assets/bk.png" alt="" v-show="!playerRed">
+    </div>
+    <div flex="cross:center">
+      <el-button type="primary" @click="reset">重置</el-button>
+      <el-button type="primary" @click="back">悔棋</el-button>
+    </div>
+  </el-footer>
+</el-container>
 </template>
 
 <script>
@@ -159,14 +157,30 @@ export default {
     async back () {
       this.undoMakeMove()
       this.undoMakeMove()
+    },
+    resizePage () {
+      const viewport = document.getElementsByTagName('meta')[1]
+      const pageViewWidth = 525
+      let initScale = Math.ceil(window.outerWidth * 100 / pageViewWidth) / 100
+      if (initScale > 1) initScale = 1
+      viewport.content = `width=device-width, initial-scale=${initScale}, maximum-scale=2.0, user-scalable=yes`
     }
+  },
+  beforeMount () {
+    window.addEventListener('resize', this.resizePage)
+  },
+  beforeDestroy () {
+    window.removeEventListener('resize', this.resizePage)
   }
 }
 </script>
-
 <style scoped>
+  .board-content {
+    padding: 5px 0;
+  }
   .board-container{
-    width: 540px;
+    margin: 0 auto;
+    max-width: 540px;
     border: 1px;
   }
   .board{
