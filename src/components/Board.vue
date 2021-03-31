@@ -132,6 +132,10 @@ export default {
         this.makeMove(move)
         let serverMove = await server.think(this.position)
         console.log(`score: ${serverMove.score}, moves ${serverMove.moves}`)
+        if (this.playerRed) {
+          console.log(`player back`)
+          return
+        }
         if (serverMove.moves && serverMove.moves.length > 0) {
           this.makeMove(serverMove.moves[0])
         }
@@ -156,7 +160,9 @@ export default {
     },
     async back () {
       this.undoMakeMove()
-      this.undoMakeMove()
+      if (!this.playerRed) {
+        this.undoMakeMove()
+      }
     },
     resizePage () {
       const viewport = document.getElementsByTagName('meta')[1]
