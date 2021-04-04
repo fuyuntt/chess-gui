@@ -2,18 +2,18 @@
 <el-container class="board-container">
   <el-main class="board-content">
     <table class="board">
-      <tr class="sqRow" v-for="(row, idxY) in pcSquares" :key="idxY">
+      <tr class="sqRow" v-for="(row, idxY) in pos.pcSquares" :key="idxY">
         <td class="square" v-for="(pc, idxX) in row" :key="idxX" @click="clickSq(idxX, idxY)">
           <img class="sqPc" v-show="selectSq.x===idxX && selectSq.y===idxY" src="../assets/selected.png" alt=""/>
-          <img class="sqPc" :src="require('../assets/'+resMap[pc])" alt=""/>
+          <img class="sqPc" :src="require('../assets/'+pcRes(pc))" alt=""/>
         </td>
       </tr>
     </table>
   </el-main>
   <el-footer flex="main:justify">
     <div>
-      <img src="../assets/rk.png" alt="" v-show="playerRed">
-      <img src="../assets/bk.png" alt="" v-show="!playerRed">
+      <img src="../assets/rk.png" alt="" v-show="pos.isRed">
+      <img src="../assets/bk.png" alt="" v-show="!pos.isRed">
     </div>
     <div flex="cross:center">
       <el-button type="primary" @click="reset">重置</el-button>
@@ -25,42 +25,8 @@
 
 <script>
 import server from '../server'
+import util from './util.js'
 
-const initPcSquares = [
-  ['r', 'n', 'b', 'a', 'k', 'a', 'b', 'n', 'r'],
-  [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-  [' ', 'c', ' ', ' ', ' ', ' ', ' ', 'c', ' '],
-  ['p', ' ', 'p', ' ', 'p', ' ', 'p', ' ', 'p'],
-  [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-  [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-  ['P', ' ', 'P', ' ', 'P', ' ', 'P', ' ', 'P'],
-  [' ', 'C', ' ', ' ', ' ', ' ', ' ', 'C', ' '],
-  [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-  ['R', 'N', 'B', 'A', 'K', 'A', 'B', 'N', 'R']
-]
-const resMap = {
-  'r': 'br.png',
-  'n': 'bn.png',
-  'b': 'bb.png',
-  'a': 'ba.png',
-  'k': 'bk.png',
-  'c': 'bc.png',
-  'p': 'bp.png',
-  'R': 'rr.png',
-  'N': 'rn.png',
-  'B': 'rb.png',
-  'A': 'ra.png',
-  'K': 'rk.png',
-  'C': 'rc.png',
-  'P': 'rp.png',
-  ' ': 'nop.png'
-}
-const initPosition = 'startpos'
-const codeA = 'a'.charCodeAt(0)
-const code0 = '0'.charCodeAt(0)
-function getMove (srcX, srcY, dstX, dstY) {
-  return String.fromCharCode(codeA + srcX, code0 + 9 - srcY, codeA + dstX, code0 + 9 - dstY)
-}
 export default {
   name: 'Board',
   data () {
@@ -69,35 +35,35 @@ export default {
         x: -1,
         y: -1
       },
-      pcSquares: JSON.parse(JSON.stringify(initPcSquares)),
-      resMap: resMap,
-      playerRed: true,
-      position: initPosition,
+      pos: {
+        pcSquares: util.newInitSquares(),
+        isRed: true
+      },
+      selfRed: true,
+      posStr: util.initPos,
       moveStack: []
     }
   },
   methods: {
+    pcRes: util.pcRes,
     select (x, y) {
-      if (this.pcSquares[y][x] !== ' ') {
+      if (this.pos.pcSquares[y][x] !== ' ') {
         this.selectSq.x = x
         this.selectSq.y = y
       }
     },
     makeMove (move) {
-      let srcX = move.charCodeAt(0) - codeA
-      let srcY = 9 - (move.charCodeAt(1) - code0)
-      let dstX = move.charCodeAt(2) - codeA
-      let dstY = 9 - (move.charCodeAt(3) - code0)
-      let captured = this.pcSquares[dstY][dstX]
-      this.$set(this.pcSquares[dstY], dstX, this.pcSquares[srcY][srcX])
-      this.$set(this.pcSquares[srcY], srcX, ' ')
-      if (this.position === initPosition) {
-        this.position += ' moves'
+      let mv = util.parseMove(move)
+      let captured = this.pos.pcSquares[mv.dstY][mv.dstX]
+      this.$set(this.pos.pcSquares[mv.dstY], mv.dstX, this.pos.pcSquares[mv.srcY][mv.srcX])
+      this.$set(this.pos.pcSquares[mv.srcY], mv.srcX, ' ')
+      if (!this.posStr.includes('moves')) {
+        this.posStr += ' moves'
       }
-      this.position = this.position + ' ' + move
-      this.playerRed = !this.playerRed
+      this.posStr = this.posStr + ' ' + move
+      this.pos.isRed = !this.pos.isRed
       this.moveStack.push({mv: move, captured: captured, selectSq: {x: this.selectSq.x, y: this.selectSq.y}})
-      this.select(dstX, dstY)
+      this.select(mv.dstX, mv.dstY)
     },
     undoMakeMove () {
       let frame = this.moveStack.pop()
@@ -105,34 +71,31 @@ export default {
         return
       }
       let move = frame.mv
-      let srcX = move.charCodeAt(0) - codeA
-      let srcY = 9 - (move.charCodeAt(1) - code0)
-      let dstX = move.charCodeAt(2) - codeA
-      let dstY = 9 - (move.charCodeAt(3) - code0)
-      this.$set(this.pcSquares[srcY], srcX, this.pcSquares[dstY][dstX])
-      this.$set(this.pcSquares[dstY], dstX, frame.captured)
-      this.position = this.position.substr(0, this.position.length - 5)
-      if (this.position.endsWith('moves')) {
-        this.position = initPosition
+      let mv = util.parseMove(move)
+      this.$set(this.pos.pcSquares[mv.srcY], mv.srcX, this.pos.pcSquares[mv.dstY][mv.dstX])
+      this.$set(this.pos.pcSquares[mv.dstY], mv.dstX, frame.captured)
+      this.posStr = this.posStr.substr(0, this.posStr.length - 5)
+      if (this.posStr.endsWith('moves')) {
+        this.posStr = this.posStr.substr(0, this.posStr.length - 6)
       }
-      this.playerRed = !this.playerRed
+      this.pos.isRed = !this.pos.isRed
       this.select(frame.selectSq.x, frame.selectSq.y)
     },
     async clickSq (x, y) {
-      if (!this.playerRed) {
+      if (this.pos.isRed !== this.selfRed) {
         return
       }
       if (this.selectSq.x === -1) {
         this.select(x, y)
         return
       }
-      let move = getMove(this.selectSq.x, this.selectSq.y, x, y)
-      let isLegal = await server.isLegalMove(this.position, move)
+      let move = util.getMove(this.selectSq.x, this.selectSq.y, x, y)
+      let isLegal = await server.isLegalMove(this.posStr, move)
       if (isLegal) {
         this.makeMove(move)
-        let serverMove = await server.think(this.position)
+        let serverMove = await server.think(this.posStr)
         console.log(`score: ${serverMove.score}, moves ${serverMove.moves}`)
-        if (this.playerRed) {
+        if (this.pos.isRed === this.selfRed) {
           console.log(`player back`)
           return
         }
@@ -146,7 +109,7 @@ export default {
         } else if (serverMove.moves.length === 0) {
           await this.$confirm('和棋', '提示')
         }
-      } else if (this.pcSquares[y][x] !== ' ') {
+      } else if (this.pos.pcSquares[y][x] !== ' ') {
         this.select(x, y)
       }
     },
@@ -154,13 +117,13 @@ export default {
       await this.$confirm('确定重置局面？', '提示', {type: 'warning'})
       this.selectSq.x = -1
       this.selectSq.y = -1
-      this.pcSquares = JSON.parse(JSON.stringify(initPcSquares))
-      this.playerRed = true
-      this.position = initPosition
+      this.pos = util.parseFen(util.initFen)
+      this.selfRed = true
+      this.posStr = util.initPos
     },
     async back () {
       this.undoMakeMove()
-      if (!this.playerRed) {
+      if (this.pos.isRed !== this.selfRed) {
         this.undoMakeMove()
       }
     },
