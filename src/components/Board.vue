@@ -134,6 +134,7 @@ export default {
     },
     async reset () {
       await this.$confirm('确定重置局面？', '提示', {type: 'warning'})
+      this.moveStack = []
       this.clearIndicator()
       this.pos = util.parseFen(util.initFen)
       this.selfRed = true
