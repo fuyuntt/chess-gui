@@ -5,6 +5,7 @@
       <tr class="sqRow" v-for="(row, idxY) in pos.pcSquares" :key="idxY">
         <td class="square" v-for="(pc, idxX) in row" :key="idxX" @click="clickSq(idxX, idxY)">
           <img class="sqPc" v-show="selectSq.x===idxX && selectSq.y===idxY" src="../assets/selected.png" alt=""/>
+          <img class="sqPc" v-show="destSq.x===idxX && destSq.y===idxY" src="../assets/selected.png" alt=""/>
           <img class="sqPc" :src="require('../assets/'+pcRes(pc))" alt=""/>
         </td>
       </tr>
@@ -35,6 +36,10 @@ export default {
         x: -1,
         y: -1
       },
+      destSq: {
+        x: -1,
+        y: -1
+      },
       pos: {
         pcSquares: util.newInitSquares(),
         isRed: true
@@ -52,8 +57,21 @@ export default {
         this.selectSq.y = y
       }
     },
+    highlight (x, y) {
+      if (this.pos.pcSquares[y][x] !== ' ') {
+        this.destSq.x = x
+        this.destSq.y = y
+      }
+    },
+    clearIndicator () {
+      this.selectSq.x = -1
+      this.selectSq.y = -1
+      this.destSq.x = -1
+      this.destSq.y = -1
+    },
     makeMove (move) {
       let mv = util.parseMove(move)
+      this.select(mv.srcX, mv.srcY)
       let captured = this.pos.pcSquares[mv.dstY][mv.dstX]
       this.$set(this.pos.pcSquares[mv.dstY], mv.dstX, this.pos.pcSquares[mv.srcY][mv.srcX])
       this.$set(this.pos.pcSquares[mv.srcY], mv.srcX, ' ')
@@ -63,9 +81,10 @@ export default {
       this.posStr = this.posStr + ' ' + move
       this.pos.isRed = !this.pos.isRed
       this.moveStack.push({mv: move, captured: captured, selectSq: {x: this.selectSq.x, y: this.selectSq.y}})
-      this.select(mv.dstX, mv.dstY)
+      this.highlight(mv.dstX, mv.dstY)
     },
     undoMakeMove () {
+      this.clearIndicator()
       let frame = this.moveStack.pop()
       if (frame === undefined) {
         return
@@ -115,8 +134,8 @@ export default {
     },
     async reset () {
       await this.$confirm('确定重置局面？', '提示', {type: 'warning'})
-      this.selectSq.x = -1
-      this.selectSq.y = -1
+      this.moveStack = []
+      this.clearIndicator()
       this.pos = util.parseFen(util.initFen)
       this.selfRed = true
       this.posStr = util.initPos
