@@ -63,7 +63,7 @@ export default {
         this.destSq.y = y
       }
     },
-    clearIndicator(){
+    clearIndicator () {
       this.selectSq.x = -1
       this.selectSq.y = -1
       this.destSq.x = -1
