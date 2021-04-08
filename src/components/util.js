@@ -121,6 +121,11 @@ function toFen (pcSquares, isRed) {
   return fen
 }
 
+function isSelfPiece (square, isRed, x, y) {
+  return isRed ? ['R', 'N', 'B', 'A', 'C', 'K', 'P'].includes(square[y][x])
+    : ['r', 'n', 'b', 'a', 'c', 'k', 'p'].includes(square[y][x])
+}
+
 export default {
   pcRes,
   getMove,
@@ -129,6 +134,7 @@ export default {
   toFen,
   newInitSquares,
   newEmptySquares,
+  isSelfPiece,
   initFen,
   initPos
 }
