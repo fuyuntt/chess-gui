@@ -7,6 +7,7 @@
           <img class="sqPc" v-show="selectSq.x===idxX && selectSq.y===idxY" src="../assets/selected.png" alt=""/>
           <img class="sqPc" v-show="destSq.x===idxX && destSq.y===idxY" src="../assets/selected.png" alt=""/>
           <img class="sqPc" :src="require('../assets/'+pcRes(pc))" alt=""/>
+          <img class="sqPc" v-show="isLegalMove(idxX, idxY)" src="../assets/dot.png" alt=""/>
         </td>
       </tr>
     </table>
@@ -46,7 +47,8 @@ export default {
       },
       selfRed: true,
       posStr: util.initPos,
-      moveStack: []
+      moveStack: [],
+      legalMoves: []
     }
   },
   methods: {
@@ -69,6 +71,9 @@ export default {
       this.destSq.x = -1
       this.destSq.y = -1
     },
+    isLegalMove (x, y) {
+      return this.legalMoves.findIndex(m => { return m.dstX === x && m.dstY === y }) !== -1
+    },
     makeMove (move) {
       let mv = util.parseMove(move)
       this.select(mv.srcX, mv.srcY)
@@ -82,6 +87,7 @@ export default {
       this.pos.isRed = !this.pos.isRed
       this.moveStack.push({mv: move, captured: captured, selectSq: {x: this.selectSq.x, y: this.selectSq.y}})
       this.highlight(mv.dstX, mv.dstY)
+      this.legalMoves = []
     },
     undoMakeMove () {
       this.clearIndicator()
@@ -104,10 +110,18 @@ export default {
       if (this.pos.isRed !== this.selfRed) {
         return
       }
-      if (this.selectSq.x === -1) {
-        this.select(x, y)
+      if (util.isSelfPiece(this.pos.pcSquares, this.pos.isRed, x, y)) {
+        if (this.selectSq.x !== x || this.selectSq.y !== y) {
+          this.select(x, y)
+          let legalMoves = await server.getLegalMoves(this.posStr, util.getSquare(x, y))
+          this.legalMoves = []
+          for (let i in legalMoves) {
+            this.legalMoves.push(util.parseMove(legalMoves[i]))
+          }
+        }
         return
       }
+
       let move = util.getMove(this.selectSq.x, this.selectSq.y, x, y)
       let isLegal = await server.isLegalMove(this.posStr, move)
       if (isLegal) {
@@ -128,8 +142,6 @@ export default {
         } else if (serverMove.moves.length === 0) {
           await this.$confirm('和棋', '提示')
         }
-      } else if (this.pos.pcSquares[y][x] !== ' ') {
-        this.select(x, y)
       }
     },
     async reset () {
@@ -139,6 +151,7 @@ export default {
       this.pos = util.parseFen(util.initFen)
       this.selfRed = true
       this.posStr = util.initPos
+      this.legalMoves = []
     },
     async back () {
       this.undoMakeMove()
@@ -187,5 +200,6 @@ export default {
   .sqPc{
     position: absolute;
     display: block;
+    -webkit-user-drag: none;
   }
 </style>
