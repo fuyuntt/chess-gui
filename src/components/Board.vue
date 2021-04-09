@@ -1,5 +1,8 @@
 <template>
 <el-container class="board-container">
+  <el-drawer :visible.sync="inEdit" size="100%" @close="editComplete">
+    <board-edit ref="editor" :fen="editFen"></board-edit>
+  </el-drawer>
   <el-main class="board-content">
     <table class="board">
       <tr class="sqRow" v-for="(row, idxY) in pos.pcSquares" :key="idxY">
@@ -18,6 +21,7 @@
       <img src="../assets/bk.png" alt="" v-show="!pos.isRed">
     </div>
     <div flex="cross:center">
+      <el-button type="primary" @click="editPos">编辑局面</el-button>
       <el-button type="primary" @click="reset">重置</el-button>
       <el-button type="primary" @click="back">悔棋</el-button>
     </div>
@@ -28,9 +32,11 @@
 <script>
 import server from '../server'
 import util from './util.js'
+import BoardEdit from './BoardEdit'
 
 export default {
   name: 'Board',
+  components: {BoardEdit},
   data () {
     return {
       selectSq: {
@@ -48,7 +54,9 @@ export default {
       selfRed: true,
       posStr: util.initPos,
       moveStack: [],
-      legalMoves: []
+      legalMoves: [],
+      inEdit: false,
+      editFen: ''
     }
   },
   methods: {
@@ -165,6 +173,15 @@ export default {
       let initScale = Math.ceil(window.outerWidth * 100 / pageViewWidth) / 100
       if (initScale > 1) initScale = 1
       viewport.content = `width=device-width, initial-scale=${initScale}, maximum-scale=2.0, user-scalable=yes`
+    },
+    editPos () {
+      this.editFen = util.toFen(this.pos.pcSquares, this.pos.isRed)
+      this.inEdit = true
+    },
+    editComplete () {
+      let fen = this.$refs.editor.getFen()
+      this.posStr = 'fen ' + fen
+      this.pos = util.parseFen(fen)
     }
   },
   beforeMount () {

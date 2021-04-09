@@ -27,7 +27,7 @@
       </table>
     </div>
     fen串：
-    <el-input v-model="fen"></el-input>
+    <el-input v-model="fenStr"></el-input>
   </div>
 </template>
 
@@ -48,6 +48,7 @@ export default {
         x: 0,
         y: 0
       },
+      fenStr: this.fen,
       pos: util.parseFen(this.fen),
       editPcSquares: [
         ['r', 'n', 'b', 'a', 'k', 'c', 'p'],
@@ -62,7 +63,7 @@ export default {
       this.selectSq.y = y
     },
     updateFen () {
-      this.fen = util.toFen(this.pos.pcSquares, this.pos.isRed)
+      this.fenStr = util.toFen(this.pos.pcSquares, this.pos.isRed)
     },
     async clickSq (x, y) {
       this.$set(this.pos.pcSquares[y], x, this.editPcSquares[this.selectSq.y][this.selectSq.x])
@@ -81,6 +82,9 @@ export default {
       let initScale = Math.ceil(window.outerWidth * 100 / pageViewWidth) / 100
       if (initScale > 1) initScale = 1
       viewport.content = `width=device-width, initial-scale=${initScale}, maximum-scale=2.0, user-scalable=yes`
+    },
+    getFen () {
+      return util.toFen(this.pos.pcSquares, this.pos.isRed)
     }
   },
   watch: {

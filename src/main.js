@@ -11,7 +11,8 @@ import {
   Main,
   MessageBox,
   Radio,
-  Input
+  Input,
+  Drawer
 } from 'element-ui'
 import 'flex.css'
 
@@ -23,6 +24,7 @@ Vue.use(Footer)
 Vue.use(Divider)
 Vue.use(Radio)
 Vue.use(Input)
+Vue.use(Drawer)
 
 Vue.config.productionTip = false
 
