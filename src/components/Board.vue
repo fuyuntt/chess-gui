@@ -113,9 +113,9 @@ export default {
       if (util.isSelfPiece(this.pos.pcSquares, this.pos.isRed, x, y)) {
         if (this.selectSq.x !== x || this.selectSq.y !== y) {
           this.select(x, y)
-          let legalMoves = await server.getLegalMoves(this.posStr, util.getMove(this.selectSq.x, this.selectSq.y, x, y))
+          let legalMoves = await server.getLegalMoves(this.posStr, util.getSquare(x, y))
           this.legalMoves = []
-          for (var i in legalMoves) {
+          for (let i in legalMoves) {
             this.legalMoves.push(util.parseMove(legalMoves[i]))
           }
         }

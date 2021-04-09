@@ -5,8 +5,8 @@ async function isLegalMove (position, move) {
   return resp.data.isLegal
 }
 
-async function getLegalMoves (position, move) {
-  let resp = await axios.get('/api/get-legal-moves', {params: {position: position, move: move}})
+async function getLegalMoves (position, srcSquare) {
+  let resp = await axios.get('/api/get-legal-moves', {params: {position: position, srcSquare: srcSquare}})
   return resp.data.legalMoves
 }
 

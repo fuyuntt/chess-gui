@@ -24,8 +24,12 @@ function pcRes (pc) {
   return resMap[pc]
 }
 
+function getSquare (x, y) {
+  return String.fromCharCode(codeA + x, code0 + 9 - y)
+}
+
 function getMove (srcX, srcY, dstX, dstY) {
-  return String.fromCharCode(codeA + srcX, code0 + 9 - srcY, codeA + dstX, code0 + 9 - dstY)
+  return getSquare(srcX, srcY) + getSquare(dstX, dstY)
 }
 
 function parseMove (move) {
@@ -128,6 +132,7 @@ function isSelfPiece (square, isRed, x, y) {
 
 export default {
   pcRes,
+  getSquare,
   getMove,
   parseMove,
   parseFen,
