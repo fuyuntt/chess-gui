@@ -162,6 +162,7 @@ export default {
       this.legalMoves = []
     },
     async back () {
+      this.legalMoves = []
       this.undoMakeMove()
       if (this.pos.isRed !== this.selfRed) {
         this.undoMakeMove()

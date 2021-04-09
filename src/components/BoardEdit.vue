@@ -88,7 +88,7 @@ export default {
     }
   },
   watch: {
-    fen: function (newFen) {
+    fenStr: function (newFen) {
       this.pos = util.parseFen(newFen)
     }
   },
